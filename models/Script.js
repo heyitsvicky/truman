@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const scriptSchema = new mongoose.Schema({
-    postID: Number, // ID of the post (0, 1, 2, 3, ... )
+    postID: { type: String, required: true }, // ID of the post (0, 1, 2, 3, ... ) (Update 9/22 by Vicky: Sarah wanted postID to be smtn like "11PS1" so I changed it to accept strings too)
     body: { type: String, default: '', trim: true }, // Text (body) of post
     picture: String, // Picture (file path) for post
     likes: Number, // Indicates the number of likes on the post (randomly assigned in populate.js)

@@ -142,7 +142,7 @@ async function doPopulate() {
                             await actor.save();
                         } catch (err) {
                             console.log(color_error, "ERROR: Something went wrong with saving actor in database");
-                            next(err);
+                            callback(err);
                         }
                     },
                     function(err) {
@@ -183,7 +183,7 @@ async function doPopulate() {
                                 await script.save();
                             } catch (err) {
                                 console.log(color_error, "ERROR: Something went wrong with saving post in database");
-                                next(err);
+                                callback(err); 
                             }
                         } else { //Else no actor found
                             console.log(color_error, "ERROR: Actor not found in database");
@@ -193,7 +193,8 @@ async function doPopulate() {
                     function(err) {
                         if (err) {
                             console.log(color_error, "ERROR: Something went wrong with saving posts in database");
-                            callback(err);
+                            console.log("Mongoose error:", err);
+                            // callback(err);
                         }
                         // Return response
                         console.log(color_success, "All posts added to database!")
@@ -217,16 +218,17 @@ async function doPopulate() {
                         if (act) {
                             const pr = await Script.findOne({ postID: new_reply.postID }).exec();
                             if (pr) {
-                                if (pr.time > timeStringToNum(new_reply.time)) {
+                                const replyTime = new_reply.time ? timeStringToNum(new_reply.time) : null;
+                                if (pr.time && replyTime !== null && pr.time > replyTime) {
                                     console.log(color_error, "ERROR: The simulated time for this comment (commentID: " + new_reply.id + ") is before the simulated time of the post.");
-                                    next(err);
+                                    callback(err);
                                 }
                                 const comment_detail = {
                                     commentID: new_reply.id,
                                     body: new_reply.body,
                                     likes: new_reply.likes || getLikesComment(),
                                     actor: act,
-                                    time: timeStringToNum(new_reply.time),
+                                    time: replyTime,
                                     class: new_reply.class,
                                     condition: new_reply.condition
                                 };
@@ -238,22 +240,22 @@ async function doPopulate() {
                                     await pr.save();
                                 } catch (err) {
                                     console.log(color_error, "ERROR: Something went wrong with saving reply in database");
-                                    next(err);
+                                    reject(err);
                                 }
                             } else { //Else no post found
                                 console.log(color_error, "ERROR: Post not found in database");
-                                callback();
+                                return;
                             }
 
                         } else { //Else no actor found
                             console.log(color_error, "ERROR: Actor not found in database");
-                            callback();
+                            return;
                         }
                     },
                     function(err) {
                         if (err) {
                             console.log(color_error, "ERROR: Something went wrong with saving replies in database");
-                            callback(err);
+                            reject(err);
                         }
                         // Return response
                         console.log(color_success, "All replies added to database!");
@@ -277,7 +279,7 @@ async function doPopulate() {
                             const notifydetail = {
                                 actor: act,
                                 notificationType: 'reply',
-                                time: timeStringToNum(new_notify.time),
+                                time: timeStringToNum(new_post.time) || null,
                                 userPostID: new_notify.userPostID,
                                 replyBody: new_notify.body,
                                 class: new_notify.class,
@@ -290,7 +292,7 @@ async function doPopulate() {
                             } catch (err) {
                                 console.log(color_error, "ERROR: Something went wrong with saving notification(reply) in database");
                                 console.log(err);
-                                next(err);
+                                callback(err);
                             }
                         } else { //Else no actor found
                             console.log(color_error, "ERROR: Actor not found in database");
@@ -321,7 +323,7 @@ async function doPopulate() {
                             const notifydetail = {
                                 actor: act,
                                 notificationType: new_notify.type,
-                                time: timeStringToNum(new_notify.time),
+                                time: timeStringToNum(new_post.time) || null,
                                 class: new_notify.class,
                                 condition: new_notify.condition
                             };
@@ -339,7 +341,7 @@ async function doPopulate() {
                                 await notify.save();
                             } catch (err) {
                                 console.log(color_error, "ERROR: Something went wrong with saving notification(like, read) in database");
-                                next(err);
+                                callback(err);
                             }
                         } else { //Else no actor found
                             console.log(color_error, "ERROR: Actor not found in database");
