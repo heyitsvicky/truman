@@ -12,9 +12,9 @@ block content
       .field
         label(for='name') Name
         input.form-control(type='text', name='name', id='name', value=user.profile.name)
-      .field
-        label(for='location') Location
-        input.form-control(type='text', name='location', id='location', value=user.profile.location)
+      //- .field
+      //-   label(for='location') Location
+      //-   input.form-control(type='text', name='location', id='location', value=user.profile.location)
       .field
         label(for='bio') Bio
         textarea(rows='2', name='bio', id='bio')=user.profile.bio
