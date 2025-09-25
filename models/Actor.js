@@ -6,7 +6,6 @@ const actorSchema = new mongoose.Schema({
         name: String,
         gender: String,
         age: Number,
-        location: String,
         bio: String,
         picture: String
     },

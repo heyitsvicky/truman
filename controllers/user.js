@@ -292,14 +292,30 @@ exports.postPageLog = async(req, res, next) => {
  * POST /pageTimes
  * Record user's time on site to pageTimes.
  */
-exports.postPageTime = async(req, res, next) => {
+exports.postPageTime = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id).exec();
-        // What day in the study is the user in? 
+
         const one_day = 86400000; // number of milliseconds in a day
-        const time_diff = Date.now() - user.createdAt; // Time difference between now and account creation.
+        const time_diff = Date.now() - user.createdAt;
         const current_day = Math.floor(time_diff / one_day);
-        user.pageTimes[current_day] += parseInt(req.body.time);
+
+        // Ensure the pageTimes array exists and is long enough
+        if (!Array.isArray(user.pageTimes)) {
+            user.pageTimes = [];
+        }
+        while (user.pageTimes.length <= current_day) {
+            user.pageTimes.push(0); // initialize missing days
+        }
+
+        // Safely parse the incoming time
+        const timeToAdd = parseInt(req.body.time, 10);
+        if (!isNaN(timeToAdd)) {
+            user.pageTimes[current_day] += timeToAdd;
+        } else {
+            console.warn("Invalid page time received:", req.body.time);
+        }
+
         await user.save();
         res.set('Content-Type', 'application/json; charset=UTF-8');
         res.send({ result: "success" });
@@ -307,6 +323,7 @@ exports.postPageTime = async(req, res, next) => {
         next(err);
     }
 };
+
 
 /**
  * GET /forgot
